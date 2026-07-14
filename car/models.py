@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class CarType(Enum):
@@ -31,3 +33,11 @@ class Step(Enum):
     BRAKE = 2
     STEERING = 3
     FINAL = 4
+
+
+@dataclass
+class Car:
+    car_type: Optional[CarType] = None
+    engine: Optional[Engine] = None
+    brake: Optional[Brake] = None
+    steering: Optional[Steering] = None
