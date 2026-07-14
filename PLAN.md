@@ -157,7 +157,7 @@ def test_is_valid_range(step, ans, expected):
 - 리팩토링 전 현재 동작(메뉴 문구, 에러 메시지, PASS/FAIL 문구)을 그대로 유지 — 문자열 변경 없이 구조만 재배치.
 - 각 단계 커밋마다 `pytest` 통과 확인 후 다음 단계로 진행.
 
-## 6. SOLID 원칙 기반 추가 파일 분리 (Phase 10~14)
+## 6. SOLID 원칙 기반 추가 파일 분리 (Phase 10~14, 완료)
 
 ### 현재(Phase 9까지) 남아있는 SOLID 위반 지점
 
@@ -186,13 +186,13 @@ car/
 cli.py              # CarAssemblyService 인스턴스 하나만 의존하도록 축소
 ```
 
-### Phase 10 — `car/names.py` 분리 (SRP)
+### Phase 10 — `car/names.py` 분리 (SRP) ✅
 
 - `car/builder.py`의 `CAR_TYPE_NAMES`, `ENGINE_NAMES`, `BRAKE_NAMES`, `STEERING_NAMES`를 `car/names.py`로 이동.
 - 테스트 먼저: `tests/test_names.py`에 각 Enum 값이 대응하는 이름 문자열을 갖는지 검증 (예: `NAMES[CarType][CarType.SEDAN] == "Sedan"` 또는 개별 dict마다 확인).
 - `car/builder.py`(이후 `selectors.py`/`service.py`)는 `car/names.py`를 import해서 사용.
 
-### Phase 11 — `car/rules/` 를 `Rule` 클래스 기반으로 전환 (OCP, LSP)
+### Phase 11 — `car/rules/` 를 `Rule` 클래스 기반으로 전환 (OCP, LSP) ✅
 
 - 추상 인터페이스:
   ```python
@@ -217,12 +217,12 @@ cli.py              # CarAssemblyService 인스턴스 하나만 의존하도록 
   - `rules` 파라미터에 기본값을 주되 주입 가능하게 하여, 신규 차량 타입/브랜드 규칙을 추가할 때 기존 `Rule` 클래스나 `validate()`를 수정하지 않고 새 `Rule` 인스턴스를 리스트에 추가하기만 하면 되도록 한다 (OCP). 순서는 기존과 동일하게 `TYPE_RULES + COMMON_RULES` 유지 (Phase 3~4에서 확인한 FAIL 메시지 우선순위 회귀 방지).
 - 테스트: 기존 `tests/test_rules.py`의 케이스는 그대로 유지하되(동작 동일해야 함), 개별 `Rule` 클래스 단위 테스트를 추가해 각 규칙을 독립적으로 검증 (예: `SedanRejectsContinentalBrake().is_violated(car)`).
 
-### Phase 12 — `car/selectors.py` 분리 (SRP)
+### Phase 12 — `car/selectors.py` 분리 (SRP) ✅
 
 - `car/builder.py`의 `select_car_type`, `select_engine`, `select_brake`, `select_steering`을 `car/selectors.py`로 이동. `car/names.py`만 의존하도록 정리.
 - 테스트: 기존 `tests/test_builder.py`의 `select_*` 관련 케이스를 `tests/test_selectors.py`로 이동/재작성.
 
-### Phase 13 — `car/service.py` 도입 (DIP, ISP)
+### Phase 13 — `car/service.py` 도입 (DIP, ISP) ✅
 
 - `run(car)`, `test_car(car)`를 `car/service.py`의 `CarAssemblyService`로 이동하고, 선택 메서드도 위임 형태로 노출:
   ```python
@@ -242,11 +242,24 @@ cli.py              # CarAssemblyService 인스턴스 하나만 의존하도록 
 - `car/builder.py`는 이 시점에 `car/names.py` + `car/selectors.py` + `car/service.py`로 완전히 대체되므로 삭제.
 - 테스트: `tests/test_service.py`로 기존 `test_builder.py`의 run/test 관련 케이스를 이관, `CarAssemblyService`를 직접 생성해 검증. `tests/test_cli.py`는 구조 변경과 무관하게 동일한 시나리오로 계속 통과해야 함 (회귀 확인).
 
-### Phase 14 — 최종 정리 및 회귀 확인
+### Phase 14 — 최종 정리 및 회귀 확인 ✅
 
-- `car/builder.py` 삭제 후 남은 import 정리 (`grep`으로 `car.builder` 참조 잔존 여부 확인).
-- 전체 `pytest` 실행 — 기존 63개 테스트(문구·순서 불변) + 신규 분리 테스트 모두 Green.
+- `car/builder.py` 삭제 후 남은 import 정리 (`grep`으로 `car.builder` 참조 잔존 여부 확인) → 코드에는 잔존 참조 없음(본 문서 설명 텍스트 제외).
+- 전체 `pytest` 실행 — 기존 63개 테스트(문구·순서 불변) + 신규 분리 테스트(names/rule_classes/selectors/service) 모두 Green, 총 78개 통과.
 - `PLAN.md`/구조 문서 갱신, 최종 커밋.
+
+### 최종 결과물
+
+```
+car/
+  models.py, names.py, validation.py, selectors.py, service.py
+  rules/__init__.py, rules/base.py, rules/common.py, rules/type_specific.py
+cli.py, assemble.py
+tests/
+  test_models.py, test_names.py, test_rules.py, test_rule_classes.py,
+  test_selectors.py, test_service.py, test_input_validation.py, test_cli.py
+```
+`car/builder.py`는 완전히 제거되었고, `cli.py`는 `CarAssemblyService`(도메인 오케스트레이션)와 `car.validation`(입력 범위 검증, UI 관심사)에만 의존한다.
 
 ### 참고 — SOLID 매핑 요약
 
