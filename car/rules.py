@@ -30,5 +30,12 @@ TYPE_RULES = [
 
 
 def validate(car):
-    rules = COMMON_RULES + TYPE_RULES
+    # 순서는 원본 assemble.py의 elif 체인과 동일하게 유지 (첫 번째 위반 메시지가
+    # test 화면의 FAIL 사유로 노출되므로 타입별 규칙 → 공통 규칙 순서가 중요하다)
+    rules = TYPE_RULES + COMMON_RULES
     return [message for condition, message in rules if not condition(car)]
+
+
+def first_violation(car):
+    violations = validate(car)
+    return violations[0] if violations else None
