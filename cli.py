@@ -3,7 +3,7 @@ import time
 
 from car.models import Step, CarType, Engine, Brake, Steering, Car
 from car.validation import is_valid_range, ERROR_MESSAGES
-from car import builder
+from car.service import CarAssemblyService
 
 CLEAR_SCREEN = "\033[H\033[2J"
 
@@ -64,6 +64,7 @@ def show_menu(step):
 
 
 def main():
+    service = CarAssemblyService()
     car = Car()
     step_index = 0
 
@@ -96,30 +97,30 @@ def main():
             continue
 
         if step == Step.CAR_TYPE:
-            print(builder.select_car_type(car, CAR_TYPE_BY_ANSWER[ans]))
+            print(service.select_car_type(car, CAR_TYPE_BY_ANSWER[ans]))
             delay(800)
             step_index = 1
         elif step == Step.ENGINE:
-            print(builder.select_engine(car, ENGINE_BY_ANSWER[ans]))
+            print(service.select_engine(car, ENGINE_BY_ANSWER[ans]))
             delay(800)
             step_index = 2
         elif step == Step.BRAKE:
-            print(builder.select_brake(car, BRAKE_BY_ANSWER[ans]))
+            print(service.select_brake(car, BRAKE_BY_ANSWER[ans]))
             delay(800)
             step_index = 3
         elif step == Step.STEERING:
-            print(builder.select_steering(car, STEERING_BY_ANSWER[ans]))
+            print(service.select_steering(car, STEERING_BY_ANSWER[ans]))
             delay(800)
             step_index = 4
         elif step == Step.FINAL:
             if ans == 1:
-                for line in builder.run(car):
+                for line in service.run(car):
                     print(line)
                 delay(2000)
             elif ans == 2:
                 print("Test...")
                 delay(1500)
-                print(builder.test_car(car))
+                print(service.test(car))
                 delay(2000)
 
 
