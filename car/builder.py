@@ -1,28 +1,6 @@
-from car.models import CarType, Engine, Brake, Steering
+from car.models import Engine
 from car.rules import validate, first_violation
-
-CAR_TYPE_NAMES = {
-    CarType.SEDAN: "Sedan",
-    CarType.SUV: "SUV",
-    CarType.TRUCK: "Truck",
-}
-
-ENGINE_NAMES = {
-    Engine.GM: "GM",
-    Engine.TOYOTA: "TOYOTA",
-    Engine.WIA: "WIA",
-}
-
-BRAKE_NAMES = {
-    Brake.MANDO: "Mando",
-    Brake.CONTINENTAL: "Continental",
-    Brake.BOSCH: "Bosch",
-}
-
-STEERING_NAMES = {
-    Steering.BOSCH: "Bosch",
-    Steering.MOBIS: "Mobis",
-}
+from car.names import CAR_TYPE_NAMES, ENGINE_NAMES, BRAKE_NAMES, STEERING_NAMES
 
 
 def select_car_type(car, car_type):
